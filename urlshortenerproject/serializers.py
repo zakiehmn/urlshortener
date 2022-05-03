@@ -3,14 +3,22 @@ from .models import Staff
 from django.contrib.auth.models import User
 
 class UserSerializer(serializers.ModelSerializer):
-    # password = serializers.CharField()
     class Meta:
         model = User
-        exclude = ('password', 'id', 'last_login', 'is_superuser', 'first_name', 
+        extra_kwargs = {'password': {'write_only': True}}
+        exclude = ('id', 'last_login', 'is_superuser', 'first_name', 
                    'last_name', 'is_staff', 'is_active', 'date_joined', 
                    'groups', 'user_permissions')
-        # fields = ('username', 'email',)
-        # write_only_fields = ('password',)
+    
+    def create(self, validated_data):
+        user = User(
+            email = validated_data['email'],
+            username = validated_data['username'],
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+
+        return user
 
 
 class StaffSerializer(serializers.ModelSerializer):
