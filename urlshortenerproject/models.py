@@ -11,5 +11,5 @@ class Staff(models.Model):
     active_links = models.IntegerField(default = 0)
 
     def __str__(self):
-        return self.username
+        return self.name
 

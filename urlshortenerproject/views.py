@@ -4,7 +4,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Staff
 from django.contrib.auth.models import User
-from .serializers import StaffSerializer
+from django.contrib.auth import authenticate, login
+from .serializers import StaffSerializer, LoginSerializer
 from rest_framework.authtoken.models import Token
 
 # Create your views here.
@@ -16,18 +17,20 @@ def signUp(request):
         serializer.save()
     return Response(serializer.data)
 
-# @api_view(['POST'])
-# def logIn(request):
-#     username = request.data['user']['username']
-#     password = request.data['user']['password']
-#     user = User.objects.get(username=username, password=password)
-#     print(user)
-#     staff = Staff.objects.get(user=user)
-#     serializer = StaffSerializer(staff, many=False)
-#     if Staff.objects.filter(username=username, password=password).exists():
-#         token = Token.objects.create()
-#     token = "user doesnt exist"
-#     return Response(token)
+@api_view(['POST'])
+def logIn(request):
+    username = request.data['user']['username']
+    password = request.data['user']['password']
+    user = authenticate(username=username, password=password)
+    print(user)
+    staff = Staff.objects.get(user=user)
+    if user :
+        login(request, user)
+        serializer = LoginSerializer(staff, many=False)
+    else:
+        print("!!!!!!!!!!")
+
+    return Response(serializer.data)
 
 
 # {

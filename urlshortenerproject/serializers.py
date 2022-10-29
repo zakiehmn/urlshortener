@@ -1,6 +1,10 @@
+from dataclasses import fields
+from unicodedata import name
 from rest_framework import serializers
 from .models import Staff
 from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,12 +27,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 class StaffSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=True)
-    class Meta:
+    class Meta():
         model = Staff
         fields = ('user', 'name','remaining_links', 'active_links',)
-        depth = 1
-        
-        
+        depth = 1   
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -37,3 +39,14 @@ class StaffSerializer(serializers.ModelSerializer):
                                                         name=validated_data.pop('name'), 
                                                         )
         return staff
+
+class LoginSerializer(StaffSerializer):
+    token = serializers.SerializerMethodField()
+
+    def get_token(self, user):
+        token = Token.objects.get_or_create(user=user.user)
+        return token[0].key
+
+    class Meta(StaffSerializer.Meta):
+        fields = StaffSerializer.Meta.fields + ('token',)
+        
