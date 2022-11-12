@@ -1,7 +1,7 @@
 from dataclasses import fields
 from unicodedata import name
 from rest_framework import serializers
-from .models import Staff
+from .models import Staff, Shortener
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
@@ -49,4 +49,22 @@ class LoginSerializer(StaffSerializer):
 
     class Meta(StaffSerializer.Meta):
         fields = StaffSerializer.Meta.fields + ('token',)
+
+class ShortenerSerializer(serializers.ModelSerializer):
+    user = UserSerializer(required=True)
+    class Meta():
+        model = Shortener
+        fields = ('user','created','long_url','short_url',)
+        depth = 1   
+
         
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        user = StaffSerializer.create(UserSerializer(), data=user_data)
+        shortener = Shortener.objects.get_or_create(user=user,
+                                                       long_url=validated_data.pop('long_url'),
+                                                       short_url=validated_data.pop('short_url'),
+                                                       )
+        return shortener
+
+    
