@@ -29,7 +29,6 @@ def logIn(request):
     username = request.data['user']['username']
     password = request.data['user']['password']
     user = authenticate(username=username, password=password)
-    print(user)
     staff = Staff.objects.get(user=user)
     if user :
         login(request, user)
@@ -47,7 +46,6 @@ def unauthorized(request):
 @api_view(['POST'])
 @login_required()
 def create_url_shortener(request):
-    print(request.data)
     user = request.user
     staff = Staff.objects.get(user=user)
     link = request.data['link']
@@ -56,17 +54,13 @@ def create_url_shortener(request):
     else:
         slug = create_random_slug()
     shortener = Shortener.objects.create(long_url=link, short_url=request.build_absolute_uri('/')+slug, user=user)
-    # print(request.build_absolute_uri('/'))
     serializer = ShortenerSerializer(shortener, many=False)
     return Response(serializer.data)
 
 @api_view(['GET'])
 def redirect_url_view(request, shortened_part):
-    print("1")
     try:
         shortener  = Shortener.objects.get(short_url=request.build_absolute_uri('/')+shortened_part)
-        print(shortener)
-        print(shortener.long_url)
         return HttpResponseRedirect(shortener.long_url)
     except:
         raise Http404('Sorry this link is broken :(')
